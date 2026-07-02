@@ -288,6 +288,49 @@ async function fetchWebdav(url: string, init: RequestInit): Promise<Response> {
 }
 
 /* ── 健康检查端点 ──────────────────────────── */
+
+  /* ── 友链 API ──────────────────────────────────────────────────── */
+
+  app.get("/api/links", async (c) => {
+    const db = c.get("db");
+    c.header("Cache-Control", "public, max-age=60, s-maxage=300");
+    return c.json(await db.getApprovedFriendLinks());
+  });
+
+  const _linkLimits = new Map();
+  app.post("/api/links", async (c) => {
+    const ip = c.req.header("CF-Connecting-IP") || "u";
+    const n = Date.now(), r = _linkLimits.get(ip);
+    if (r && r.c >= 3 && (n - r.f) < 3600000) return c.json({ error: "Too many" }, 429);
+    if (!r || (n - r.f) >= 3600000) _linkLimits.set(ip, { c: 1, f: n }); else r.c++;
+    const b = await c.req.json().catch(() => null);
+    if (!b || typeof b !== "object") return c.json({ error: "Invalid JSON" }, 400);
+    const sn = (b.siteName || "").trim(), u = (b.url || "").trim();
+    if (!sn || sn.length > 64) return c.json({ error: "Site name required" }, 400);
+    if (!u || u.length > 512) return c.json({ error: "URL required" }, 400);
+    try { const p = new URL(u); if (p.protocol !== "https:" && p.protocol !== "http:") return c.json({ error: "Invalid protocol" }, 400); }
+    catch { return c.json({ error: "Invalid URL" }, 400); }
+    const db = c.get("db");
+    const l = await db.createFriendLink({ siteName: sn, url: u, description: (b.description || "").slice(0, 256), avatarUrl: (b.avatarUrl || "").slice(0, 512), contact: (b.contact || "").slice(0, 64), email: (b.email || "").slice(0, 128) });
+    return c.json({ success: true, message: "Submitted", id: l.id }, 201);
+  });
+
+  app.get("/api/admin/links", async (c) => {
+    return c.json(await c.get("db").getAllFriendLinks());
+  });
+  app.post("/api/admin/links/:id/approve", async (c) => {
+    const id = parseInt(c.req.param("id"));
+    if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
+    if (!await c.get("db").approveFriendLink(id)) return c.json({ error: "Not found" }, 404);
+    return c.json({ success: true });
+  });
+  app.delete("/api/admin/links/:id", async (c) => {
+    const id = parseInt(c.req.param("id"));
+    if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
+    if (!await c.get("db").deleteFriendLink(id)) return c.json({ error: "Not found" }, 404);
+    return c.json({ success: true });
+  });
+
 app.get("/api/health", async (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });

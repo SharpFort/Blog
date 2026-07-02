@@ -25,6 +25,7 @@ const AdminMedia = lazy(() => import("@/pages/admin/media").then((m) => ({ defau
 const AdminAnalytics = lazy(() => import("@/pages/admin/analytics").then((m) => ({ default: m.AdminAnalytics })));
 const AdminSeo = lazy(() => import("@/pages/admin/seo").then((m) => ({ default: m.AdminSeo })));
 const PrivacyPage = lazy(() => import("@/pages/privacy").then((m) => ({ default: m.PrivacyPage })));
+const LinksPage = lazy(() => import("@/pages/links").then((m) => ({ default: m.LinksPage })));
 const DynamicPage = lazy(() => import("@/pages/dynamic-page").then((m) => ({ default: m.DynamicPage })));
 const NotFoundPage = lazy(() => import("@/pages/not-found").then((m) => ({ default: m.NotFoundPage })));
 
@@ -166,6 +167,7 @@ export function App() {
                 <Route path="/posts/:slug" component={PostPage} />
                 <Route path="/archive" component={ArchivePage} />
                 <Route path="/about" component={AboutPage} />
+                <Route path="/links" component={LinksPage} />
                 <Route path="/privacy" component={PrivacyPage} />
                 <Route path="/page/:slug" component={DynamicPage} />
                 <Route>

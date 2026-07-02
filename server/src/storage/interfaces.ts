@@ -142,6 +142,16 @@ export type Comment = {
   createdAt: string;
 };
 
+export type FriendLink = {
+  id: number; siteName: string; url: string; description: string;
+  avatarUrl: string; contact: string; email: string;
+  approved: boolean; sortOrder: number; createdAt: string; updatedAt: string;
+};
+export type CreateFriendLinkInput = {
+  siteName: string; url: string; description?: string;
+  avatarUrl?: string; contact?: string; email?: string;
+};
+
 export type CreateCommentInput = {
   postSlug: string;
   authorName: string;

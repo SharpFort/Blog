@@ -132,3 +132,17 @@ export const postVersions = sqliteTable("post_versions", {
     .notNull()
     .default(sql`(datetime('now'))`),
 });
+
+export const friendLinks = sqliteTable("friend_links", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  siteName: text("site_name").notNull(),
+  url: text("url").notNull(),
+  description: text("description").default(""),
+  avatarUrl: text("avatar_url").default(""),
+  contact: text("contact").default(""),
+  email: text("email").default(""),
+  approved: integer("approved", { mode: "boolean" }).notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
+});

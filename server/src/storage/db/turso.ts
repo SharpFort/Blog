@@ -963,6 +963,13 @@ export class TursoAdapter implements IDatabase {
     return (result.rows as unknown as Row[] || []).map(r => ({ name: r.name as string, count: r.count as number }));
   }
 
+
+  async getApprovedFriendLinks(): Promise<import("../interfaces").FriendLink[]> { return []; }
+  async getAllFriendLinks(): Promise<import("../interfaces").FriendLink[]> { return []; }
+  async createFriendLink(_input: import("../interfaces").CreateFriendLinkInput): Promise<import("../interfaces").FriendLink> { throw new Error("Friend links only on D1 backend"); }
+  async approveFriendLink(_id: number): Promise<boolean> { return false; }
+  async deleteFriendLink(_id: number): Promise<boolean> { return false; }
+
   async getReactions(postSlug: string): Promise<Record<string, number>> {
     const rows = await this.db
       .select({ type: reactions.type, count: sql<number>`COUNT(*)` })

@@ -5,7 +5,7 @@
 
 import { drizzle } from "drizzle-orm/d1";
 import { eq, desc, sql, inArray } from "drizzle-orm";
-import { posts, tags, postTags, pages, comments, reactions, visits, postVersions } from "../../db/schema";
+import { posts, tags, postTags, pages, comments, reactions, visits, postVersions, friendLinks } from "../../db/schema";
 import type {
   IDatabase, Post, PostSummary, Tag, Page, PageSummary,
   CreatePostInput, UpdatePostInput, UpsertPageInput,
@@ -70,6 +70,7 @@ export class D1Adapter implements IDatabase {
       comments: ["id", "post_id", "author_name", "author_email", "content", "approved", "created_at"],
       reactions: ["id", "post_slug", "type", "ip_hash", "created_at"],
       visits: ["id", "path", "country", "referer_domain", "device_type", "created_at"],
+      friend_links: ["id", "site_name", "url", "approved", "created_at"],
     };
     const missingTables: string[] = [];
     const missingColumns: string[] = [];
@@ -1030,6 +1031,41 @@ export class D1Adapter implements IDatabase {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(post_slug, type, ip_hash)
     )`);
+  }
+
+  async getApprovedFriendLinks(): Promise<import("../interfaces").FriendLink[]> {
+    await this.ensureFriendLinksTable();
+    const r = await this.db.run(sql`SELECT * FROM friend_links WHERE approved = 1 ORDER BY sort_order ASC, created_at DESC`);
+    return ((r.results||[]) as Record<string,unknown>[]).map((x) => ({ id:x.id as number, siteName:x.site_name as string, url:x.url as string, description:(x.description as string)||"", avatarUrl:(x.avatar_url as string)||"", contact:(x.contact as string)||"", email:(x.email as string)||"", approved:Boolean(x.approved), sortOrder:(x.sort_order as number)??0, createdAt:x.created_at as string, updatedAt:x.updated_at as string }));
+  }
+  async getAllFriendLinks(): Promise<import("../interfaces").FriendLink[]> {
+    await this.ensureFriendLinksTable();
+    const r = await this.db.run(sql`SELECT * FROM friend_links ORDER BY approved DESC, sort_order ASC, created_at DESC`);
+    return ((r.results||[]) as Record<string,unknown>[]).map((x) => ({ id:x.id as number, siteName:x.site_name as string, url:x.url as string, description:(x.description as string)||"", avatarUrl:(x.avatar_url as string)||"", contact:(x.contact as string)||"", email:(x.email as string)||"", approved:Boolean(x.approved), sortOrder:(x.sort_order as number)??0, createdAt:x.created_at as string, updatedAt:x.updated_at as string }));
+  }
+  async createFriendLink(input: import("../interfaces").CreateFriendLinkInput): Promise<import("../interfaces").FriendLink> {
+    await this.ensureFriendLinksTable();
+    const r = await this.db.run(sql`INSERT INTO friend_links (site_name, url, description, avatar_url, contact, email) VALUES (${input.siteName}, ${input.url}, ${input.description||""}, ${input.avatarUrl||""}, ${input.contact||""}, ${input.email||""}) RETURNING *`);
+    const x = (r.results as Record<string,unknown>[])?.[0];
+    if (!x) throw new Error("Failed to create friend link");
+    return { id:x.id as number, siteName:x.site_name as string, url:x.url as string, description:(x.description as string)||"", avatarUrl:(x.avatar_url as string)||"", contact:(x.contact as string)||"", email:(x.email as string)||"", approved:Boolean(x.approved), sortOrder:(x.sort_order as number)??0, createdAt:x.created_at as string, updatedAt:x.updated_at as string };
+  }
+  async approveFriendLink(id: number): Promise<boolean> {
+    await this.ensureFriendLinksTable();
+    const r = await this.db.run(sql`UPDATE friend_links SET approved = 1, updated_at = datetime('now') WHERE id = ${id}`);
+    return ((r.meta as {changes?:number}|undefined)?.changes??0) > 0;
+  }
+  async deleteFriendLink(id: number): Promise<boolean> {
+    await this.ensureFriendLinksTable();
+    const r = await this.db.run(sql`DELETE FROM friend_links WHERE id = ${id}`);
+    return ((r.meta as {changes?:number}|undefined)?.changes??0) > 0;
+  }
+  private async ensureFriendLinksTable(): Promise<void> {
+    await this.db.run(sql`CREATE TABLE IF NOT EXISTS friend_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, site_name TEXT NOT NULL, url TEXT NOT NULL,
+      description TEXT DEFAULT '', avatar_url TEXT DEFAULT '', contact TEXT DEFAULT '',
+      email TEXT DEFAULT '', approved INTEGER NOT NULL DEFAULT 0, sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')), updated_at TEXT NOT NULL DEFAULT (datetime('now')))`);
   }
 
   async getReactions(postSlug: string): Promise<Record<string, number>> {

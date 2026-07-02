@@ -482,6 +482,15 @@ export async function fetchAEAnalytics(days = 7): Promise<AEAnalyticsData> {
   return res.json();
 }
 
+/* ── 友链 ──────────── */
+export type FriendLink = { id: number; siteName: string; url: string; description: string; avatarUrl: string; sortOrder: number; createdAt: string; };
+export async function fetchFriendLinks(): Promise<FriendLink[]> { return fetchJsonWithCache<FriendLink[]>("/api/links", 120_000); }
+export async function submitFriendLink(data: { siteName: string; url: string; description?: string; avatarUrl?: string; contact?: string; email?: string; }): Promise<any> { const res = await fetch(API_BASE + "/api/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); return res.json(); }
+export type AdminFriendLink = FriendLink & { contact: string; email: string; approved: boolean; updatedAt: string; };
+export async function fetchAdminFriendLinks(): Promise<AdminFriendLink[]> { const res = await fetch(API_BASE + "/api/admin/links", { headers: authHeaders() }); if (!res.ok) throw new Error("获取友链列表失败"); return res.json(); }
+export async function approveFriendLink(id: number): Promise<void> { const res = await fetch(API_BASE + "/api/admin/links/" + id + "/approve", { method: "POST", headers: authHeaders() }); if (!res.ok) throw new Error("审核失败"); }
+export async function deleteFriendLink(id: number): Promise<void> { const res = await fetch(API_BASE + "/api/admin/links/" + id, { method: "DELETE", headers: authHeaders() }); if (!res.ok) throw new Error("删除失败"); }
+
 /* ── 评论 ──────────────────────────────────── */
 export type CommentData = {
   id: number;
