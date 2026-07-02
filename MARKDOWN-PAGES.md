@@ -8,9 +8,9 @@
 
 Markdown 创建的页面通过固定路由访问：
 
-```
-https://你的域名/page/{slug}
-```
+
+    https://你的域名/page/{slug}
+
 
 例如：
 - 后台创建 slug 为 `about` 的页面 → 访问 `https://blog.sharpfort.net/page/about`
@@ -24,23 +24,23 @@ https://你的域名/page/{slug}
 
 ### 数据流
 
-```
-后台 /admin/pages
-  │  填写：标题 / Slug / Markdown 内容 / 排序 / 是否发布 / 是否显示导航
-  ▼
-POST /api/admin/pages  →  D1 pages 表 (upsert)
-  │
-  ▼
-前台 /page/:slug
-  │  路由匹配 → DynamicPage 组件
-  │  GET /api/pages/:slug → 读取 pages 表
-  ▼
-renderMarkdown(content)
-  │  marked (解析) + highlight.js (代码高亮)
-  │  + KaTeX (数学公式) + DOMPurify (XSS 过滤)
-  ▼
-HTML 输出 → 浏览器渲染
-```
+
+    后台 /admin/pages
+      │  填写：标题 / Slug / Markdown 内容 / 排序 / 是否发布 / 是否显示导航
+      ▼
+    POST /api/admin/pages  →  D1 pages 表 (upsert)
+      │
+      ▼
+    前台 /page/:slug
+      │  路由匹配 → DynamicPage 组件
+      │  GET /api/pages/:slug → 读取 pages 表
+      ▼
+    renderMarkdown(content)
+      │  marked (解析) + highlight.js (代码高亮)
+      │  + KaTeX (数学公式) + DOMPurify (XSS 过滤)
+      ▼
+    HTML 输出 → 浏览器渲染
+
 
 ### 核心渲染器
 
@@ -112,44 +112,44 @@ HTML 输出 → 浏览器渲染
 
 当你需要在 Monolith 中新增一个页面时，把下面的提示词发给 AI Agent：
 
-```markdown
-我需要在 Monolith 博客中新增一个页面，请先帮我分析这个页面应该用哪个方案。
 
-我的需求是：[在这里描述你的页面要做什么]
+    我需要在 Monolith 博客中新增一个页面，请先帮我分析这个页面应该用哪个方案。
+    
+    我的需求是：[在这里描述你的页面要做什么]
+    
+    请按以下步骤帮我：
+    
+    1. **方案判断**：分析这个页面是「纯内容展示」还是需要「数据查询/用户交互」，告诉我应该用 Markdown 页面还是全栈开发。
+    
+    2. **如果是 Markdown 页面**，请询问我以下信息：
+       - 页面标题（必填）
+       - URL Slug（如 about、friends，建议用英文小写连字符）
+       - 内容取向：偏技术文档 / 个人介绍 / 项目展示 / 其他
+       - 是否需要显示在顶部导航栏
+       - 是否需要目录 TOC
+       然后根据我的回答，生成完整的 Markdown 内容，包括：
+       - 合适的标题层级结构
+       - 表格（如有对照信息）
+       - 代码示例（如适用）
+       - 图片/视频占位（如需要）
+    
+    3. **如果是全栈开发**，请告诉我需要新增哪些文件和 API，给出完整的实现方案（就像开发友链功能那样）。
+    
+    4. 生成后，告诉我如何在后台创建/部署这个页面。
 
-请按以下步骤帮我：
-
-1. **方案判断**：分析这个页面是「纯内容展示」还是需要「数据查询/用户交互」，告诉我应该用 Markdown 页面还是全栈开发。
-
-2. **如果是 Markdown 页面**，请询问我以下信息：
-   - 页面标题（必填）
-   - URL Slug（如 about、friends，建议用英文小写连字符）
-   - 内容取向：偏技术文档 / 个人介绍 / 项目展示 / 其他
-   - 是否需要显示在顶部导航栏
-   - 是否需要目录 TOC
-   然后根据我的回答，生成完整的 Markdown 内容，包括：
-   - 合适的标题层级结构
-   - 表格（如有对照信息）
-   - 代码示例（如适用）
-   - 图片/视频占位（如需要）
-
-3. **如果是全栈开发**，请告诉我需要新增哪些文件和 API，给出完整的实现方案（就像开发友链功能那样）。
-
-4. 生成后，告诉我如何在后台创建/部署这个页面。
-```
 
 ### 简化版（你已经知道要用 Markdown）
 
-```markdown
-帮我在 Monolith 后台创建一个 Markdown 页面。
-标题：[你的标题]
-Slug：[url-slug]
-内容方向：[技术文档 / 个人介绍 / 项目展示 / 隐私政策 / 其他]
-显示在导航栏：[是 / 否]
-需要 TOC：[是 / 否]
 
-请生成完整的 Markdown 内容。
-```
+    帮我在 Monolith 后台创建一个 Markdown 页面。
+    标题：[你的标题]
+    Slug：[url-slug]
+    内容方向：[技术文档 / 个人介绍 / 项目展示 / 隐私政策 / 其他]
+    显示在导航栏：[是 / 否]
+    需要 TOC：[是 / 否]
+    
+    请生成完整的 Markdown 内容。
+
 
 ---
 
